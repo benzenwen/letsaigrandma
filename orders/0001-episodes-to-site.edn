@@ -1,0 +1,118 @@
+{:id "0001-episodes-to-site"
+ :title "Render Home and the Comics index from episodes.edn"
+
+ :goal "`bb build` turns content/episodes.edn into the published site: a
+        Home page (index.html) showing the latest episode and a Comics page
+        (comics/index.html) listing every episode in order, both styled by
+        one hand-written stylesheet, both committed so GitHub Pages serves
+        them from the repo root with no build step. Adding an episode is:
+        add one map to episodes.edn, run `bb build`, commit."
+
+ :acceptance
+ ["`bb build` writes index.html, comics/index.html, and css/site.css; the
+   generated files are committed in this change and running `bb build`
+   again leaves `git status` clean (deterministic output)"
+  "index.html shows the episode with the highest :number — its title, its
+   date rendered as a <time datetime=\"YYYY-MM-DD\"> element, its caption,
+   and its figure — plus the site title and the premise line"
+  "comics/index.html lists every episode ascending by :number, each with
+   title, date, caption, and figure"
+  "An episode whose :image is nil renders a <figure> placeholder containing
+   the text `Not inked yet.` and no <img> element"
+  "An episode with :image but blank or missing :alt fails validation:
+   site/validate-episodes returns {:ok? false :errors [...]} naming the
+   episode :number and the :field, and build! throws ex-info with :type
+   :lag/invalid-episodes carrying those errors — nothing is written"
+  "Every href and src in generated HTML is relative (no leading `/`, no
+   `http`), so the site works at https://benzenwen.github.io/letsaigrandma/"
+  "Generated pages contain no <script> tag and reference no external URL"
+  "Every generated page starts with <!DOCTYPE html>, has <html lang=\"en\">,
+   a viewport meta tag, and a <title>"
+  "Tests cover: validation (valid, missing alt, bad date), latest-episode
+   selection, comics ordering, placeholder rendering, relative links, and
+   build! into a temp directory producing the expected files"
+  "`bb test` stays green"]
+
+ :scope ["bb.edn" "src/**" "test/**" "css/**" "index.html" "comics/**"]
+
+ :non-goals
+ ["No Characters or About pages and no nav links to them — nav is Home and
+   Comics only; a later order adds the rest"
+  "No per-episode pages, RSS, tags, pagination, search, or archive by year"
+  "No image processing, resizing, thumbnails, or lazy-loading machinery"
+  "No JavaScript, no webfonts, no CDN, no analytics, no external requests"
+  "No README changes, no GitHub Actions, no deployment tooling"
+  "Do not create or commit any image files — the placeholder is HTML+CSS"
+  "Do not edit content/episodes.edn, .nojekyll, DESIGN.md, or PRODUCT.md"]
+
+ :design "Two namespaces. lag.site is pure (data in, hiccup out) and is the
+          only place that knows HTML structure:
+
+            (validate-episodes episodes) -> {:ok? true}
+                                          | {:ok? false :errors [{:number 1 :field :alt :message \"...\"}]}
+            (latest-episode episodes)    -> the map with the highest :number
+            (episode-figure episode)     -> hiccup <figure>: <img src alt> + <figcaption>,
+                                            or the placeholder frame when :image is nil
+            (home-page episodes)         -> hiccup for the whole document
+            (comics-page episodes)       -> hiccup for the whole document
+            (render doc)                 -> \"<!DOCTYPE html>...\" string
+
+          A private page-chrome helper owns <head>, header (site title
+          linking home, premise line), nav (Home, Comics), and footer, so
+          both pages share one skeleton. Nav entries are a data vector, so
+          the next order adds pages by adding entries. Links are computed
+          relative to each page's depth (comics/index.html links to
+          ../css/site.css and ../index.html).
+
+          lag.build is the only namespace touching the filesystem:
+
+            (build! {:root \".\"})  -> {:written [\"index.html\" \"comics/index.html\" \"css/site.css\"]}
+
+          reads <root>/content/episodes.edn, validates, throws
+          (ex-info \"invalid episodes\" {:type :lag/invalid-episodes :errors [...]})
+          before writing anything, otherwise writes the pages and returns
+          the paths it wrote. bb.edn gains `build {:task (lag.build/build!)}`
+          (the test task already exists; do not change the test runner).
+
+          Copy, verbatim: site title `Let's AI, Grandma`; premise line
+          `A family, some AI, and one load-bearing comma.`; placeholder text
+          `Not inked yet.`; footer `© 2026 · drawn by hand, hosted on GitHub Pages`.
+          Dates render like `September 20, 2026` inside <time datetime=...>.
+
+          css/site.css: hand-written, ~60–100 lines. Off-white paper
+          background, near-black ink text, system font stack, single column
+          with max-width around 44rem, figures at 100% width, generous
+          vertical whitespace, a plain 2px ink border on figures (an uneven
+          border-radius for a hand-drawn feel is welcome). No gradients,
+          no shadows, no animations. Readable at 360px wide with no
+          horizontal scroll."
+
+ :examples
+ ["episodes.edn as committed (one episode, :image nil) -> index.html shows
+   `Because I know Minecraft`, <time datetime=\"2026-09-20\">September 20, 2026</time>,
+   the caption, and a figure containing `Not inked yet.`; comics/index.html
+   lists that one episode"
+  "episodes [{:number 1 ...} {:number 2 ...}] -> home shows #2, comics page
+   lists #1 then #2"
+  "episode {:number 3 :image \"comics/003.png\" :alt \"\" ...} ->
+   (validate-episodes ...) => {:ok? false :errors [{:number 3 :field :alt :message ...}]}
+   and (build! ...) throws :lag/invalid-episodes, writes nothing"
+  "episode {:number 4 :date \"Sept 4\" ...} -> validation error on :date"]
+
+ :context
+ ["DESIGN.md — the stack decision, the episode schema, and the HTML/CSS and
+   copy rules are all there; the review station judges against it"
+  "PRODUCT.md — the brief, the voice, and the characters (for alt text style)"
+  "content/episodes.edn — the committed data; it is the input, do not edit it"
+  "test/lag/test_runner.clj — `bb test` discovers test/**/*_test.clj; just
+   add test/lag/site_test.clj and test/lag/build_test.clj"
+  "Babashka bundles hiccup2: (require '[hiccup2.core :as h]) then
+   (str (h/html ...)); emit the doctype with (h/raw \"<!DOCTYPE html>\").
+   hiccup2 escapes strings by default — good; the apostrophe in the site
+   title will come out as &apos; or similar, which is fine"
+  "GitHub Pages serves this repo as a *project* site under
+   /letsaigrandma/, which is why every link must be relative"
+  "Use babashka.fs for file writes and temp dirs in tests
+   (fs/create-temp-dir, fs/create-dirs, spit)"]
+
+ :budget-usd 12.0}

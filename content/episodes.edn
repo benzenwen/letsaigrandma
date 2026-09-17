@@ -1,0 +1,9 @@
+;; Episodes, one map each. Schema in DESIGN.md ("Data first").
+;; To add an episode: drop the image in comics/, add a map here, run
+;; `bb build`, commit the lot.
+[{:number  1
+  :title   "Because I know Minecraft"
+  :date    "2026-09-20"
+  :image   nil
+  :alt     nil
+  :caption "Joey catches the AI being wrong about Minecraft. Nana asks how he knew."}]
