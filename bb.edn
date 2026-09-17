@@ -1,0 +1,5 @@
+{:paths ["src" "test"]
+ :tasks
+ {test {:doc "Run the test suite (discovers test/**/*_test.clj)"
+        :requires ([lag.test-runner])
+        :task (lag.test-runner/run)}}}
