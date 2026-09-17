@@ -1,0 +1,129 @@
+/* Let's AI, Grandma -- hand-written stylesheet. See DESIGN.md. */
+
+:root {
+  --paper: #faf7f0;
+  --ink: #1c1a17;
+  --ink-soft: #4a4640;
+  --border: #22201c;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  background: var(--paper);
+}
+
+body {
+  margin: 0 auto;
+  padding: 1.5rem 1.25rem 3rem;
+  max-width: 44rem;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+    Helvetica, Arial, sans-serif;
+  line-height: 1.55;
+}
+
+header {
+  margin-bottom: 2.5rem;
+}
+
+header h1 {
+  margin: 0 0 0.35rem;
+  font-size: 1.75rem;
+}
+
+header h1 a {
+  color: inherit;
+  text-decoration: none;
+}
+
+.premise {
+  margin: 0 0 1.25rem;
+  color: var(--ink-soft);
+  font-style: italic;
+}
+
+nav ul {
+  display: flex;
+  gap: 1.25rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+nav a {
+  color: var(--ink);
+  text-decoration: underline;
+  text-underline-offset: 0.2rem;
+}
+
+main {
+  margin-bottom: 3rem;
+}
+
+.episode {
+  margin-bottom: 3rem;
+}
+
+.episode h2 {
+  margin: 0 0 0.25rem;
+  font-size: 1.35rem;
+}
+
+.episode time {
+  display: block;
+  margin-bottom: 1rem;
+  color: var(--ink-soft);
+  font-size: 0.9rem;
+}
+
+.comics-list .episode {
+  padding-top: 2rem;
+  border-top: 1px solid #ddd6c7;
+}
+
+.comics-list .episode:first-child {
+  padding-top: 0;
+  border-top: none;
+}
+
+figure {
+  margin: 0;
+}
+
+.episode-figure img {
+  display: block;
+  width: 100%;
+  height: auto;
+  border: 2px solid var(--border);
+  border-radius: 255px 15px 225px 15px / 15px 225px 15px 255px;
+}
+
+.episode-figure.placeholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 12rem;
+  border: 2px solid var(--border);
+  border-radius: 15px 255px 15px 225px / 225px 15px 255px 15px;
+  color: var(--ink-soft);
+}
+
+.placeholder-text {
+  margin: 0;
+  font-style: italic;
+}
+
+figcaption {
+  margin-top: 0.6rem;
+  color: var(--ink-soft);
+  font-size: 0.95rem;
+}
+
+footer {
+  color: var(--ink-soft);
+  font-size: 0.85rem;
+}
