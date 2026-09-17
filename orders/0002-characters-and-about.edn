@@ -7,7 +7,9 @@
         lists Home, Comics, Characters, About, derived from one nav vector
         plus the page's depth — the per-page hand-built links that order
         0001 shipped are gone. Adding a character is: add one map to
-        characters.edn, run `bb build`, commit."
+        characters.edn, run `bb build`, commit. On the way, the figure
+        layout defect shipped by order 0001 is fixed: the frame and the
+        caption stack, and nothing overflows a phone-width viewport."
 
  :acceptance
  ["`bb build` writes characters/index.html and about/index.html (and
@@ -41,6 +43,19 @@
    card rendering with and without image, characters page order, about
    page paragraph order, nav contents and depth prefixes on a root page and
    a nested page, build! writing all four pages and no css into a temp dir"
+  "Figure markup, for episodes and characters alike: <figure> contains a
+   frame element (the bordered box, holding either the <img> or the
+   `Not inked yet.` placeholder text) followed by <figcaption> as its
+   sibling (characters omit the figcaption); a test asserts this structure
+   for an episode with an image, an episode without, and a character card"
+  "CSS puts the border, min-height, and centering on the frame element,
+   never on <figure>; the `.episode-figure.placeholder { display: flex }`
+   rule from 0001 is gone; the frame and images are capped at 100% width"
+  "At a 360px-wide viewport none of the four pages scrolls horizontally
+   and the caption sits below the frame — the build agent verifies this by
+   rendering each page with the headless Chromium at
+   /opt/pw-browsers/chromium-*/chrome-linux/chrome (see :context) and says
+   so in its summary"
   "`bb test` stays green"]
 
  :scope ["src/**" "test/**" "css/**" "index.html" "comics/**"
@@ -104,6 +119,22 @@
             Delete stylesheet-source and the css write entirely —
             css/site.css is hand-authored and lives only in git.
 
+          Figure shape, one helper for both pages:
+
+            [:figure.art
+             [:div.frame (if image [:img {:src (str prefix image) :alt alt}]
+                                   [:p.placeholder-text "Not inked yet."])]
+             (when caption [:figcaption caption])]
+
+            .frame carries the 2px ink border, the uneven border-radius,
+            min-height for the placeholder, and centered text (display:grid;
+            place-items:center, or block + text-align) with max-width:100%
+            and overflow hidden; img is display:block; width:100%;
+            height:auto. <figure> keeps margin:0 and nothing else. This
+            replaces 0001's flex-on-the-figure rule, which put the
+            figcaption in the same row as the placeholder text and let it
+            overflow the viewport on phones.
+
           CSS: append rules for .character (name, role in the soft ink
           colour, figure, blurb) and for About prose (measure and
           paragraph spacing). Keep the existing rules as they are."
@@ -122,7 +153,10 @@
   "character with :image \"images/characters/nana.png\" on the characters
    page -> <img src=\"../images/characters/nana.png\" alt=\"...\">"
   "about.edn as committed -> about/index.html has an <h2>About</h2> and
-   five <p> elements whose text equals the five strings, in order"]
+   five <p> elements whose text equals the five strings, in order"
+  "index.html rendered at 360px wide -> no horizontal scrollbar; the
+   placeholder frame spans the column and `Not inked yet.` is centered
+   inside it with the caption on its own line below the frame"]
 
  :context
  ["This order builds on the tree shipped by order 0001 (letsaigrandma PR #1,
@@ -144,6 +178,21 @@
   "characters/ and about/ do not exist yet; build! creates them with
    babashka.fs/create-dirs"
   "The site is a GitHub Pages *project* site under /letsaigrandma/, which
-   is why every link is relative and depth-prefixed"]
+   is why every link is relative and depth-prefixed"
+  "Foreman render check of 0001's output at 390px found the figure
+   overflowing the viewport and the placeholder text sitting beside the
+   caption. Cause: css/site.css has `.episode-figure.placeholder { display:
+   flex; ... }` and the <figcaption> is a child of that figure, so it
+   becomes a flex item that refuses to shrink. Fix the structure (frame
+   element + sibling caption), not just the CSS"
+  "To render a page headlessly: serve the repo root with
+   `python3 -m http.server 8000 --bind 127.0.0.1 &` then
+   `/opt/pw-browsers/chromium-*/chrome-linux/chrome --headless=new
+   --no-sandbox --disable-gpu --window-size=360,900 --screenshot=/tmp/x.png
+   http://127.0.0.1:8000/`; or evaluate document.documentElement.scrollWidth
+   with --dump-dom equivalents. Kill the server when done"
+  "content/episodes.edn: Episode 1 currently has :image nil; the artist
+   will set it to comics/001-that-comma.png soon. Both states must render
+   correctly on Home and Comics"]
 
  :budget-usd 12.0}

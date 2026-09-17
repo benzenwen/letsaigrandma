@@ -1,9 +1,14 @@
 ;; Episodes, one map each. Schema in DESIGN.md ("Data first").
 ;; To add an episode: drop the image in comics/, add a map here, run
 ;; `bb build`, commit the lot.
+;;
+;; Episode 1's placeholder art (the AI-generated rough, to be re-rendered in
+;; ink and watercolor) is not in the repo yet. When it lands as
+;; comics/001-that-comma.png, set :image to that path; :alt is already
+;; written for it.
 [{:number  1
-  :title   "Because I know Minecraft"
+  :title   "That comma is doing a lot of work"
   :date    "2026-09-20"
   :image   nil
-  :alt     nil
-  :caption "Joey catches the AI being wrong about Minecraft. Nana asks how he knew."}]
+  :alt     "A kitchen. Joey, holding a tablet, says: \"No, Grandma — 'Let's AI, Grandma.'\" Nana, chin in hand over her coffee, says: \"That comma is doing a lot of work.\" A note on the fridge reads \"Let's eat, Grandma.\" The newspaper on the table says \"Grammar still matters.\""
+  :caption "Joey explains the title. Nana explains the comma."}]
