@@ -1,0 +1,149 @@
+{:id "0002-characters-and-about"
+ :title "Characters and About pages from content data"
+
+ :goal "The site gains its last two pages. characters/index.html renders
+        one card per entry in content/characters.edn; about/index.html
+        renders the paragraphs in content/about.edn. Every page's nav now
+        lists Home, Comics, Characters, About, derived from one nav vector
+        plus the page's depth — the per-page hand-built links that order
+        0001 shipped are gone. Adding a character is: add one map to
+        characters.edn, run `bb build`, commit."
+
+ :acceptance
+ ["`bb build` writes characters/index.html and about/index.html (and
+   regenerates index.html and comics/index.html for the new nav); all four
+   are committed and a second `bb build` leaves `git status` clean"
+  "characters/index.html shows five cards in file order — Nana, Joey, Jane,
+   Mom, Dad — each with the name as a heading, the role line, the blurb
+   verbatim, and a figure: <img src alt> when :image is set, otherwise the
+   `Not inked yet.` placeholder with no <img>"
+  "about/index.html renders every string in content/about.edn as one <p>
+   each, in order, verbatim, under a heading `About`"
+  "Every generated page's nav lists exactly Home, Comics, Characters, About
+   in that order; on a page one directory below the root every nav, css,
+   home, and image href is prefixed `../` except the page's own entry"
+  "home-page and comics-page no longer build nav-links, css-href, or
+   home-href themselves: page-chrome derives all of them from a single
+   nav-links vector and a :depth, and episode/character figures get their
+   image prefix from the same depth"
+  "site/validate-characters returns {:ok? false :errors [{:name \"Joey\"
+   :field :alt :message ...}]} for a character with :image and blank :alt,
+   and for a blank :name, :role, or :blurb; build! throws ex-info with
+   :type :lag/invalid-characters before writing anything"
+  "build! no longer writes css/site.css: building into a temp directory
+   creates no css/ directory, and :written is exactly [\"index.html\"
+   \"comics/index.html\" \"characters/index.html\" \"about/index.html\"]"
+  "Every order-0001 acceptance criterion still holds; existing tests change
+   only where the nav refactor requires it"
+  "All hrefs and srcs relative, no <script>, no external URL, doctype,
+   lang, viewport, and <title> on every page — including the two new ones"
+  "Tests cover: character validation (valid, missing alt, blank blurb),
+   card rendering with and without image, characters page order, about
+   page paragraph order, nav contents and depth prefixes on a root page and
+   a nested page, build! writing all four pages and no css into a temp dir"
+  "`bb test` stays green"]
+
+ :scope ["src/**" "test/**" "css/**" "index.html" "comics/**"
+         "characters/**" "about/**"]
+
+ :non-goals
+ ["No per-character pages, no episode-to-character cross links"
+  "No changes to the episode schema, validation, or content/episodes.edn"
+  "No README, no deployment tooling, no images committed — placeholders are HTML+CSS"
+  "No CSS overhaul: add only the rules the cards and the About prose need"
+  "No JavaScript, no webfonts, no external requests"
+  "Do not fix latest-episode on an empty episodes vector — that is a separate order"
+  "Do not edit content/*.edn, .nojekyll, bb.edn, DESIGN.md, or PRODUCT.md"]
+
+ :design "lag.site keeps its shape and grows two pages and one refactor.
+
+          The refactor first, because both new pages need it:
+
+            (def nav-links [{:label \"Home\"       :href \"index.html\"}
+                            {:label \"Comics\"     :href \"comics/index.html\"}
+                            {:label \"Characters\" :href \"characters/index.html\"}
+                            {:label \"About\"      :href \"about/index.html\"}])
+
+            page-chrome takes {:title :depth :body}. :depth is 0 for
+            index.html and 1 for any <dir>/index.html. A private
+            (prefix depth) -> \"\" | \"../\" is applied to css, home, nav,
+            and image hrefs; a nav entry that points at the current page
+            (its href equals the page's own path) becomes just
+            \"index.html\". Nobody outside page-chrome computes a link.
+            The figure helper takes the same prefix, so home-page passes
+            depth 0 and comics-page depth 1 and nothing else changes.
+
+          New pure functions:
+
+            (validate-characters characters) -> {:ok? true}
+                                              | {:ok? false :errors [{:name \"Joey\" :field :alt :message \"...\"}]}
+              rules: :name, :role, :blurb non-blank strings; :image nil or
+              string; :alt non-blank when :image is set. Collect every error.
+            (character-card character prefix) -> [:article.character
+                                                   [:h2 name] [:p.role role]
+                                                   figure [:p.blurb blurb]]
+              reusing the episode figure's image/placeholder shape — one
+              authored figure helper, generalized over {:image :alt}, not
+              a second copy. Card figures carry no figcaption.
+            (characters-page characters) -> document, cards in input order
+            (about-page paragraphs)      -> document: [:h2 \"About\"] then
+                                            one [:p] per string, in order
+
+          lag.build:
+
+            (build! {:root \".\"})
+              -> {:written [\"index.html\" \"comics/index.html\"
+                            \"characters/index.html\" \"about/index.html\"]}
+
+            reads content/episodes.edn, content/characters.edn, and
+            content/about.edn under root; validates episodes and
+            characters (about is a vector of non-blank strings — validate
+            it inline, no new public fn); throws :lag/invalid-episodes or
+            :lag/invalid-characters before writing anything; creates the
+            characters/ and about/ directories; writes the four pages.
+            Delete stylesheet-source and the css write entirely —
+            css/site.css is hand-authored and lives only in git.
+
+          CSS: append rules for .character (name, role in the soft ink
+          colour, figure, blurb) and for About prose (measure and
+          paragraph spacing). Keep the existing rules as they are."
+
+ :examples
+ ["content as committed -> characters/index.html contains five
+   <article class=\"character\"> in order Nana, Joey, Jane, Mom, Dad, each
+   with a placeholder figure containing `Not inked yet.` and no <img>; its
+   <link> href is `../css/site.css` and its nav hrefs are `../index.html`,
+   `../comics/index.html`, `index.html`, `../about/index.html`"
+  "index.html nav hrefs are `index.html`, `comics/index.html`,
+   `characters/index.html`, `about/index.html`"
+  "character {:name \"Joey\" :role \"Eleven\" :image \"images/characters/joey.png\" :alt \"\" :blurb \"...\"}
+   -> (validate-characters ...) => {:ok? false :errors [{:name \"Joey\" :field :alt :message ...}]}
+   and (build! ...) throws :lag/invalid-characters, writes nothing"
+  "character with :image \"images/characters/nana.png\" on the characters
+   page -> <img src=\"../images/characters/nana.png\" alt=\"...\">"
+  "about.edn as committed -> about/index.html has an <h2>About</h2> and
+   five <p> elements whose text equals the five strings, in order"]
+
+ :context
+ ["This order builds on the tree shipped by order 0001 (letsaigrandma PR #1,
+   branch factory/0001-episodes-to-site): src/lag/site.clj, src/lag/build.clj,
+   css/site.css, test/lag/site_test.clj, test/lag/build_test.clj. Read all
+   five before planning"
+  "site.clj today: home-page and comics-page each hand-build :nav-links,
+   :css-href, :home-href and pass an image prefix string to episode-block.
+   The 0001 review station flagged this duplication; this order removes it"
+  "build.clj today has a private stylesheet-source var and spits
+   css/site.css on every build. Remove both; the stylesheet is an input,
+   not an output"
+  "content/characters.edn and content/about.edn are committed inputs with
+   deliberate copy — render verbatim, do not edit"
+  "DESIGN.md — the doctrine; the review station judges against it.
+   PRODUCT.md — characters and voice, if alt text or a heading needs judgement"
+  "test/lag/test_runner.clj discovers test/**/*_test.clj; add tests to the
+   existing files or new ones, never edit the runner"
+  "characters/ and about/ do not exist yet; build! creates them with
+   babashka.fs/create-dirs"
+  "The site is a GitHub Pages *project* site under /letsaigrandma/, which
+   is why every link is relative and depth-prefixed"]
+
+ :budget-usd 12.0}

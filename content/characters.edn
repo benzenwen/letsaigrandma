@@ -1,0 +1,29 @@
+;; Characters, in the order they appear on the Characters page.
+;; Schema: {:name :role :image :alt :blurb}. :image is site-root-relative
+;; (images/characters/<name>.png) or nil until the card is painted; :alt is
+;; required when :image is set. Copy is deliberate — edit here, not in code.
+[{:name  "Nana"
+  :role  "Grandma"
+  :image nil
+  :alt   nil
+  :blurb "One of the first women to earn a Ph.D. in biochemistry, which means she has watched a great many revolutions arrive with press releases. Not against technology. Not impressed by it either. Her question is usually \"How would we know?\""}
+ {:name  "Joey"
+  :role  "Eleven"
+  :image nil
+  :alt   nil
+  :blurb "Minecraft first, everything else second. Treats AI as a toy and a workshop, tries the ridiculous thing immediately, and occasionally finds something real because nobody else thought to ask. His weakness: a fluent answer feels like a true one."}
+ {:name  "Jane"
+  :role  "Older sister, high school"
+  :image nil
+  :alt   nil
+  :blurb "Suspicious of hype, tired of adults explaining her own generation to her, and worried that AI is making schoolwork and creative work strange. Not against it. Worried that opting out is also a trap."}
+ {:name  "Mom"
+  :role  "Mom"
+  :image nil
+  :alt   nil
+  :blurb "Warm, practical, and the person who actually reads the permission slip."}
+ {:name  "Dad"
+  :role  "Dad"
+  :image nil
+  :alt   nil
+  :blurb "Round yellow glasses. Brings work home, including the parts of work that are now a chatbot."}]
