@@ -94,22 +94,30 @@ figure {
   margin: 0;
 }
 
-.episode-figure img {
-  display: block;
-  width: 100%;
-  height: auto;
+.frame {
+  max-width: 100%;
   border: 2px solid var(--border);
   border-radius: 255px 15px 225px 15px / 15px 225px 15px 255px;
 }
 
-.episode-figure.placeholder {
+.frame img {
+  display: block;
+  width: 100%;
+  max-width: 100%;
+  height: auto;
+}
+
+.frame.placeholder {
   display: flex;
   align-items: center;
   justify-content: center;
   min-height: 12rem;
-  border: 2px solid var(--border);
   border-radius: 15px 255px 15px 225px / 225px 15px 255px 15px;
   color: var(--ink-soft);
+}
+
+.character-figure .frame.placeholder {
+  min-height: 8rem;
 }
 
 .placeholder-text {
@@ -121,6 +129,33 @@ figcaption {
   margin-top: 0.6rem;
   color: var(--ink-soft);
   font-size: 0.95rem;
+}
+
+.character {
+  margin-bottom: 2.5rem;
+}
+
+.character h2 {
+  margin: 0 0 0.15rem;
+  font-size: 1.35rem;
+}
+
+.character .role {
+  margin: 0 0 0.75rem;
+  color: var(--ink-soft);
+  font-size: 0.9rem;
+}
+
+.character .frame {
+  margin-bottom: 0.75rem;
+}
+
+.character .blurb {
+  margin: 0;
+}
+
+.about p {
+  margin: 0 0 1.25rem;
 }
 
 footer {
